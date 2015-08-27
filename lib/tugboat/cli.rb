@@ -534,6 +534,19 @@ module Tugboat
         "user_quiet" => options[:quiet]
       })
     end
+
+    desc "wait_image IMAGE_NAME", "Wait for an snapshot to be complete"
+    method_option "id",
+                  :type => :numeric,
+                  :aliases => "-i",
+                  :desc => "The ID of the image."
+    def wait_image(name=nil)
+      Middleware.sequence_wait_image.call({
+        "user_image_id" => options[:id],
+        "user_image_name" => name,
+        "user_quiet" => options[:quiet],
+      })
+    end
   end
 end
 

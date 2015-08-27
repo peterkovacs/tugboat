@@ -34,6 +34,7 @@ module Tugboat
     autoload :SSHDroplet, "tugboat/middleware/ssh_droplet"
     autoload :StartDroplet, "tugboat/middleware/start_droplet"
     autoload :WaitForState, "tugboat/middleware/wait_for_state"
+    autoload :WaitForImage, "tugboat/middleware/wait_for_image"
 
     # Start the authorization flow.
     # This writes a ~/.tugboat file, which can be edited manually.
@@ -283,6 +284,15 @@ module Tugboat
         use InjectClient
         use FindDroplet
         use WaitForState
+      end
+    end
+
+    def self.sequence_wait_image
+      ::Middleware::Builder.new do
+        use InjectConfiguration
+        use CheckConfiguration
+        use InjectClient
+        use WaitForImage
       end
     end
   end
