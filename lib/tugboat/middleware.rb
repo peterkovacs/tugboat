@@ -15,6 +15,7 @@ module Tugboat
     autoload :RebuildDroplet, "tugboat/middleware/rebuild_droplet"
     autoload :DestroyDroplet, "tugboat/middleware/destroy_droplet"
     autoload :DestroyImage, "tugboat/middleware/destroy_image"
+    autoload :DestroyImages, "tugboat/middleware/destroy_images"
     autoload :FindDroplet, "tugboat/middleware/find_droplet"
     autoload :FindImage, "tugboat/middleware/find_image"
     autoload :HaltDroplet, "tugboat/middleware/halt_droplet"
@@ -293,6 +294,15 @@ module Tugboat
         use CheckConfiguration
         use InjectClient
         use WaitForImage
+      end
+    end
+
+    def self.sequence_destroy_images
+      ::Middleware::Builder.new do
+        use InjectConfiguration
+        use CheckConfiguration
+        use InjectClient
+        use DestroyImages
       end
     end
   end

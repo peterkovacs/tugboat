@@ -547,6 +547,28 @@ module Tugboat
         "user_quiet" => options[:quiet],
       })
     end
+
+    desc "destroy_images", "Destroy all images, except for image requested to keep"
+    method_option "id",
+                  :type => :numeric,
+                  :aliases => "-i",
+                  :desc => "The ID of the image to keep."
+    method_option "name",
+                  :type => :string,
+                  :aliases => "-n",
+                  :desc => "The exact name of the image to keep."
+    method_option "confirm",
+                  :type => :boolean,
+                  :aliases => "-c",
+                  :desc => "Skip confirmation of the action"
+    def destroy_images
+      Middleware.sequence_destroy_images.call({
+        "user_image_keep_id" => options[:id],
+        "user_image_keep_name" => options[:name],
+        "user_confirm_action" => options[:confirm],
+        "user_quiet" => options[:quiet],
+      })
+    end
   end
 end
 
