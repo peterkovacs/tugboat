@@ -576,6 +576,18 @@ module Tugboat
         "user_quiet" => options[:quiet],
       })
     end
+
+    desc "domain_records", "List the records for a given domain"
+    method_option "id",
+                  :type => :numeric,
+                  :aliases => "-i",
+                  :desc => "The ID of the domain"
+    def domain_records
+      Middleware.sequence_domain_records.call({
+        "user_domain_id" => options[:id],
+        "user_quiet" => options[:quiet],
+      })
+    end
   end
 end
 

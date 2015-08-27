@@ -16,6 +16,7 @@ module Tugboat
     autoload :DestroyDroplet, "tugboat/middleware/destroy_droplet"
     autoload :DestroyImage, "tugboat/middleware/destroy_image"
     autoload :DestroyImages, "tugboat/middleware/destroy_images"
+    autoload :DomainRecords, "tugboat/middleware/domain_records"
     autoload :FindDroplet, "tugboat/middleware/find_droplet"
     autoload :FindImage, "tugboat/middleware/find_image"
     autoload :HaltDroplet, "tugboat/middleware/halt_droplet"
@@ -313,6 +314,15 @@ module Tugboat
         use CheckConfiguration
         use InjectClient
         use ListDomains
+      end
+    end
+
+    def self.sequence_domain_records
+      ::Middleware::Builder.new do
+        use InjectConfiguration
+        use CheckConfiguration
+        use InjectClient
+        use DomainRecords
       end
     end
   end
