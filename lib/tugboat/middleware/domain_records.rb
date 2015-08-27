@@ -1,6 +1,6 @@
 module Tugboat
   module Middleware
-    class DomainRecords
+    class DomainRecords < Base
       def call(env)
         ocean = env["ocean"]
 

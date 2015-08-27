@@ -588,6 +588,32 @@ module Tugboat
         "user_quiet" => options[:quiet],
       })
     end
+
+    desc "domain_record_edit", "Set the record type and data for a given record"
+    method_option "id",
+                  :type => :numeric,
+                  :aliases => "-i",
+                  :desc => "The ID of the domain record"
+    method_option "domain_id",
+                  :type => :numeric,
+                  :aliases => "-d",
+                  :desc => "The ID of the domain"
+    method_option "record_type",
+                  :type => :string,
+                  :aliases => "-t",
+                  :desc => "The record type: A CNAME NS TXT MX SRV"
+    method_option "record_data",
+                  :type => :string,
+                  :aliases => "-v",
+                  :desc => "The value for the record"
+    def domain_record_edit
+      Middleware.sequence_domain_record_edit.call({
+        "user_domain_id" => options[:domain_id],
+        "user_record_id" => options[:id],
+        "user_record_type" => options[:record_type],
+        "user_record_data" => options[:record_data],
+      })
+    end
   end
 end
 
