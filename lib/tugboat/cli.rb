@@ -569,6 +569,13 @@ module Tugboat
         "user_quiet" => options[:quiet],
       })
     end
+
+    desc "domains", "List the domains for this account"
+    def domains
+      Middleware.sequence_list_domains.call({
+        "user_quiet" => options[:quiet],
+      })
+    end
   end
 end
 

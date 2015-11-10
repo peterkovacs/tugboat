@@ -28,6 +28,7 @@ module Tugboat
     autoload :ListRegions, "tugboat/middleware/list_regions"
     autoload :ListSizes, "tugboat/middleware/list_sizes"
     autoload :ListSSHKeys, "tugboat/middleware/list_ssh_keys"
+    autoload :ListDomains, "tugboat/middleware/list_domains"
     autoload :PasswordReset, "tugboat/middleware/password_reset"
     autoload :ResizeDroplet, "tugboat/middleware/resize_droplet"
     autoload :RestartDroplet, "tugboat/middleware/restart_droplet"
@@ -303,6 +304,15 @@ module Tugboat
         use CheckConfiguration
         use InjectClient
         use DestroyImages
+      end
+    end
+
+    def self.sequence_list_domains
+      ::Middleware::Builder.new do
+        use InjectConfiguration
+        use CheckConfiguration
+        use InjectClient
+        use ListDomains
       end
     end
   end
