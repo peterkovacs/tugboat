@@ -2,20 +2,18 @@ module Tugboat
   module Middleware
     class DestroyDroplet < Base
       def call(env)
-        ocean = env['barge']
+        ocean = env["ocean"]
 
         say "Queuing destroy for #{env["droplet_id"]} #{env["droplet_name"]}...", nil, false
 
-        response = ocean.droplet.destroy env["droplet_id"]
-
-        unless response.success?
-          say "Failed to destroy Droplet: #{response.message}", :red
+        begin
+          ocean.droplets.delete id: env["droplet_id"]
+          say "done", :green
+          @app.call(env)
+        rescue DropletKit::Error => e
+          say e.message, :red
           exit 1
-        else
-          say "Deletion Successful!", :green
         end
-
-        @app.call(env)
       end
     end
   end

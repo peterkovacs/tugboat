@@ -3,7 +3,7 @@ module Tugboat
     # Check if the client has set-up configuration yet.
     class FindImage < Base
       def call(env)
-        ocean = env['barge']
+        ocean = env["ocean"]
         user_fuzzy_name = env['user_image_fuzzy_name']
         user_image_name = env['user_image_name']
         user_image_id = env['user_image_id']
@@ -25,15 +25,10 @@ module Tugboat
         # Easy for us if they provide an id. Just set it to the image_id
         if user_image_id
           say "Image id provided. Finding Image...", nil, false
-          response = ocean.image.show user_image_id
+          image = ocean.images.find id: user_image_id
 
-          unless response.success?
-            say "Failed to find Image: #{response.message}", :red
-            exit 1
-          end
-
-          env["image_id"] = response.image.id
-          env["image_name"] = "(#{response.image.name})"
+          env["image_id"] = image.id
+          env["image_name"] = "(#{image.name})"
         end
 
         # If they provide a name, we need to get the ID for it.
@@ -42,10 +37,11 @@ module Tugboat
           say "Image name provided. Finding Image...", nil, false
 
           # Look for the image by an exact name match.
-          ocean.image.all['images'].each do |d|
+          ocean.images.all.each do |d|
             if d.name == user_image_name
               env["image_id"] = d.id
               env["image_name"] = "(#{d.name})"
+              break
             end
           end
 
@@ -68,7 +64,7 @@ module Tugboat
           found_images = []
           choices = []
 
-          ocean.image.all['images'].each_with_index do |d, i|
+          ocean.images.all.each_with_index do |d, i|
 
             # Check to see if one of the image names have the fuzzy string.
             if d.name.upcase.include? user_fuzzy_name.upcase
@@ -115,6 +111,9 @@ module Tugboat
           say "done#{CLEAR}, #{env["image_id"]} #{env["image_name"]}", :green
         end
         @app.call(env)
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end

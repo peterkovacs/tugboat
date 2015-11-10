@@ -4,22 +4,18 @@ module Tugboat
       def call(env)
         ocean = env["ocean"]
 
-        domains = ocean.domains.list
+        domains = ocean.domains.all
 
-        if domains.status != "OK"
-          say "#{domains.status}: #{domains.error_message}", :red
-          exit 1
-        end
-          
-        domains = domains.domains
-
-        if domains.empty?
+        if domains.count == 0
           say "No domains found"
         else
           domains.each do |domain|
-            say "#{domain.name} (id: #{domain.id}) #{domain.error}", nil, true
+            say domain.name, nil, true
           end
         end
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end

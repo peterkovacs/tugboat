@@ -4,14 +4,17 @@ module Tugboat
       def call(env)
         ocean = env["ocean"]
 
-        req = ocean.domains.edit_record( env["user_domain_id"], env["user_record_id"], :record_type => env["user_record_type"], :data => env["user_record_data"] )
+        domain_record = ocean.domain_records.find( for_domain: env["user_domain"], id: env["user_record_id"] )
+        domain_record.type = env["user_record_type"]
+        domain_record.data = env["user_record_data"]
 
-        if req.status != "OK"
-          say "#{req.status}: #{req.error_message}", :red
+        begin
+          ocean.domain_records.update( domain_record, for_domain: env["user_domain"], id: env["user_record_id"] )
+          say "done", :green
+        rescue DropletKit::Error => e
+          say "#{e.message}", :red
           exit 1
         end
-
-        say "done", :green
       end
     end
   end

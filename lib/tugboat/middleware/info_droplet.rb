@@ -2,21 +2,9 @@ module Tugboat
   module Middleware
     class InfoDroplet < Base
       def call(env)
-        ocean = env['barge']
+        ocean = env["ocean"]
 
-        response = ocean.droplet.show env["droplet_id"]
-
-        unless response.success?
-          say "Failed to get info for Droplet: #{response.message}", :red
-          exit 1
-        end
-
-        droplet = response.droplet
-
-        unless response.success?
-          say "Failed to find droplet: #{response.message}", :red
-          exit 1
-        end
+        droplet = ocean.droplets.find id: env["droplet_id"]
 
         if droplet.status == "active"
           status_color = GREEN
@@ -26,22 +14,16 @@ module Tugboat
 
         attribute = env["user_attribute"]
 
-        droplet_ip4_public = droplet.networks.v4.detect { |address| address.type == 'public' }.ip_address
-        droplet_ip6_public = droplet.networks.v6.detect { |address| address.type == 'public' }.ip_address unless droplet.networks.v6.empty?
-        check_private_ip   = droplet.networks.v4.detect { |address| address.type == 'private' }
-        droplet_private_ip = check_private_ip.ip_address if check_private_ip
-
         attributes_list = [
           ["name",  droplet.name],
           ["id",  droplet.id],
           ["status",  droplet.status],
-          ["ip4",  droplet_ip4_public],
-          ["ip6",  droplet_ip6_public],
-          ["private_ip",  droplet_private_ip],
-          ["region",  droplet.region.slug],
-          ["image",  droplet.image.id],
-          ["size",  droplet.size_slug],
-          ["backups_active",  !droplet.backup_ids.empty?]
+          ["ip",  droplet.public_ip],
+          ["private_ip",  droplet.private_ip],
+          ["region",  droplet.region.name],
+          ["image",  droplet.image.name],
+          ["size",  droplet.size],
+          ["backups_active",  (droplet.backups || false)]
         ]
         attributes = Hash[*attributes_list.flatten(1)]
 
@@ -51,7 +33,7 @@ module Tugboat
           else
             say "Invalid attribute \"#{attribute}\"", :red
             say "Provide one of the following:", :red
-            attributes_list.each { |a| say "    #{a[0]}", :red }
+            attributes_list.keys.each { |a| say "    #{a[0]}", :red }
             exit 1
           end
         else
@@ -62,27 +44,23 @@ module Tugboat
             say "Name:             #{droplet.name}"
             say "ID:               #{droplet.id}"
             say "Status:           #{status_color}#{droplet.status}#{CLEAR}"
-            say "IP4:              #{droplet_ip4_public}"
-            say "IP6:              #{droplet_ip6_public}" unless droplet.networks.v6.empty?
+            say "IP:               #{droplet.public_ip}"
 
-            if droplet_private_ip
-              say "Private IP:       #{droplet_private_ip}"
-            end
+            if droplet.private_ip
+              say "Private IP:       #{droplet.private_ip}"
+    	      end
 
-            if droplet.image.slug.nil?
-              image_description  = droplet.image.name
-            else
-              image_description = droplet.image.slug
-            end
-
-            say "Region:           #{droplet.region.name} - #{droplet.region.slug}"
-            say "Image:            #{droplet.image.id} - #{image_description}"
-            say "Size:             #{droplet.size_slug.upcase}"
+            say "Region:           #{droplet.region.name} (#{droplet.region.slug})"
+            say "Image:            #{droplet.image.name} (#{droplet.image.slug || droplet.image.id})"
+            say "Size:             #{droplet.size_slug}"
             say "Backups Active:   #{!droplet.backup_ids.empty?}"
           end
         end
 
         @app.call(env)
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end

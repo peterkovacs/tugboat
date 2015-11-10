@@ -2,20 +2,18 @@ module Tugboat
   module Middleware
     class DestroyImage < Base
       def call(env)
-        ocean = env['barge']
+        ocean = env["ocean"]
 
         say "Queuing destroy image for #{env["image_id"]} #{env["image_name"]}...", nil, false
 
-        response = ocean.image.destroy env["image_id"]
-
-        unless response.success?
-          say "Failed to destroy image: #{response.message}", :red
+        begin
+          ocean.images.delete id: env["image_id"]
+          say "done", :green
+          @app.call(env)
+        rescue DropletKit::Error => e
+          say e.message, :red
           exit 1
-        else
-          say 'Image deletion successful!', :green
         end
-
-        @app.call(env)
       end
     end
   end

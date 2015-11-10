@@ -10,7 +10,7 @@ describe Tugboat::Middleware::CheckCredentials do
          to_return(:headers => {'Content-Type' => 'application/json'}, :status => 200, :body => "<html>You are being redirected...</html>")
 
       # Inject the client.
-      env["barge"] = ocean
+      env["ocean"] = ocean
 
       expect {described_class.new(app).call(env) }.to raise_error(SystemExit)
       expect(a_request(:get, "https://api.digitalocean.com/v2/droplets?per_page=200")).

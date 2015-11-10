@@ -4,14 +4,7 @@ module Tugboat
       def call(env)
         ocean = env["ocean"]
 
-        req = ocean.droplets.show env["droplet_id"]
-
-        if req.status == "ERROR"
-          say "#{req.status}: #{req.error_message}", :red
-          exit 1
-        end
-
-        droplet = req.droplet
+        droplet = ocean.droplets.find id: env["droplet_id"]
 
         if droplet.status == "active"
           status_color = GREEN
@@ -19,33 +12,20 @@ module Tugboat
           status_color = RED
         end
 
-        req = ocean.domains.show( env["user_domain_id"] )
+        domain = ocean.domains.find( name: env["user_domain"] )
+        record = ocean.domain_records.find( for_domain: env["user_domain"], id: env["user_record_id"] )
 
-        if req.status == "ERROR"
-          say "#{req.status}: #{req.error_message}", :red
-          exit 1
-        end
+        say "Pointing #{droplet.name} (#{droplet.public_ip}) to #{record.name}.#{domain.name}", nil, true
 
-        domain = req.domain
+        record.data = droplet.public_ip
+        record.type = 'A'
 
-        req = ocean.domains.show_record( env["user_domain_id"], env["user_record_id"] )
-
-        if req.status == "ERROR"
-          say "#{req.status}: #{req.error_message}", :red
-          exit 1
-        end
-
-        record = req.record
-
-        say "Pointing #{droplet.name} (#{droplet.ip_address}) to #{record.name}.#{domain.name}", nil, true
-
-        req = ocean.domains.edit_record( env["user_domain_id"], env["user_record_id"], :record_type => 'A', :data => droplet.ip_address )
-        if req.status != "OK"
-          say "#{req.status}: #{req.error_message}", :red
-          exit 1
-        end
+        ocean.domain_records.update( record, for_domain: env["user_domain"], id: env["user_record_id"] )
 
         say "done", :green, true
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end

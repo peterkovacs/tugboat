@@ -2,7 +2,7 @@ module Tugboat
   module Middleware
     class AddKey < Base
       def call(env)
-        ocean = env['barge']
+        ocean = env['ocean']
 
         if env["add_key_pub_key"]
           pub_key_string = env["add_key_pub_key"]
@@ -29,20 +29,14 @@ module Tugboat
 
         say "Queueing upload of SSH key '#{env["add_key_name"]}'...", nil, false
 
-        response = ocean.key.create :name => env["add_key_name"],
-                               :public_key  => pub_key_string
+        ocean.ssh_keys.create DropletKit::SSHKey.new( :name => env["add_key_name"],
+                                                     :public_key  => pub_key_string )
 
-        unless response.success?
-          say "Failed to create key: #{response.message}", :red
-          exit 1
-        end
-
-        say "SSH Key uploaded", :green
-        say
-        say "Name: #{response.ssh_key.name}"
-        say "ID: #{response.ssh_key.id}"
-
-        @app.call(env)
+        say "done", :green
+        @app.call( env )
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end

@@ -2,41 +2,38 @@ module Tugboat
   module Middleware
     class ListImages < Base
       def call(env)
-        ocean = env['barge']
-        my_images = ocean.image.all(:private => true)
-        public_images = ocean.image.all.images - my_images.images
-
-        if env['user_show_just_private_images']
-          say "Showing just private images", :green
-          say "Private Images:", :blue
-          my_images_list = my_images.images
-          if my_images_list.nil? || my_images_list.empty?
-            say "No private images found"
-          else
-            my_images_list.each do |image|
-              say "#{image.name} (id: #{image.id}, distro: #{image.distribution})"
-            end
-          end
+        ocean = env["ocean"]
+        my_images = ocean.images.all.reject(&:public)
+        if env["user_show_global_images"]
+          global = ocean.images.all.select(&:public)
         else
-          say "Showing both private and public images"
-          say "Private Images:", :blue
-          my_images_list = my_images.images
-          if my_images_list.nil? || my_images_list.empty?
-            say "No private images found"
-          else
-            my_images_list.each do |image|
-              say "#{image.name} (id: #{image.id}, distro: #{image.distribution})"
-            end
+          say "Listing Your Images"
+          say "(Use `tugboat images --global` to show all images)"
+        end
+
+        say "My Images:"
+        if my_images.count == 0
+          say "No images found"
+        else
+          my_images.each do |image|
+            say "#{image.slug} #{image.distribution} #{image.name} (id: #{image.id})"
           end
-          say ''
-          say "Public Images:", :blue
-          public_images.each do |image|
-            say "#{image.name} (slug: #{image.slug}, id: #{image.id}, distro: #{image.distribution})"
+        end
+
+        if env["user_show_global_images"]
+          say
+          say "Global Images:"
+          global.each do |image|
+            say "#{image.slug} #{image.distribution} #{image.name} (id: #{image.id})"
           end
         end
 
         @app.call(env)
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end
 end
+

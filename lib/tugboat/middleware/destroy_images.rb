@@ -4,12 +4,9 @@ module Tugboat
       def call(env)
         ocean = env['ocean']
 
-        image_to_keep =  
-
-        my_images = ocean.images.list :filter => "my_images"
-        my_images_list = my_images.images
+        my_images = ocean.images.all.reject(&:public)
         
-        my_images_list.each do |image|
+        my_images.each do |image|
           next if image.id == env['user_image_keep_id'] 
           next if image.name == env['user_image_keep_name'] 
 
@@ -25,13 +22,13 @@ module Tugboat
             end
           end
 
-          req = ocean.images.delete image.id
-          if req.status == "ERROR"
-            say "#{req.status}: #{req.error_message}", :red
+          begin
+            ocean.images.delete id: image.id
+            say "done", :green
+          rescue DropletKit::Error => e
+            say e.message, :red
             exit 1
           end
-
-          say "done", :green
         end
 
         @app.call( env )

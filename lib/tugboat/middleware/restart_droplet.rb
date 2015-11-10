@@ -2,24 +2,22 @@ module Tugboat
   module Middleware
     class RestartDroplet < Base
       def call(env)
-        ocean = env['barge']
+        ocean = env["ocean"]
 
-        response = if env["user_droplet_hard"]
+        req = if env["user_droplet_hard"]
           say "Queuing hard restart for #{env["droplet_id"]} #{env["droplet_name"]}...", nil, false
-          ocean.droplet.power_cycle env["droplet_id"]
+          ocean.droplet_actions.power_cycle droplet_id: env["droplet_id"]
         else
           say "Queuing restart for #{env["droplet_id"]} #{env["droplet_name"]}...", nil, false
-          ocean.droplet.reboot env["droplet_id"]
+          ocean.droplet_actions.reboot droplet_id: env["droplet_id"]
         end
 
-        unless response.success?
-          say "Failed to restart Droplet: #{response.message}", :red
-          exit 1
-        else
-          say "Restart complete!", :green
-        end
+        say "done", :green
 
         @app.call(env)
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end

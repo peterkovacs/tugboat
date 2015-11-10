@@ -2,19 +2,17 @@ module Tugboat
   module Middleware
     class StartDroplet < Base
       def call(env)
-        ocean = env['barge']
+        ocean = env["ocean"]
 
         say "Queuing start for #{env["droplet_id"]} #{env["droplet_name"]}...", nil, false
-        response = ocean.droplet.power_on env["droplet_id"]
+        ocean.droplet_actions.power_on droplet_id: env["droplet_id"]
 
-        unless response.success?
-          say "Failed to start Droplet: #{response.message}", :red
-          exit 1
-        else
-          say "Start complete!", :green
-        end
+        say "done", :green
 
         @app.call(env)
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end

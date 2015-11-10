@@ -144,15 +144,15 @@ module Tugboat
 
     desc "create NAME", "Create a droplet."
     method_option  "size",
-                   :type => :numeric,
+                   :type => :string,
                    :aliases => "-s",
                    :desc => "The size slug of the droplet"
     method_option  "image",
                    :type => :numeric,
                    :aliases => "-i",
-                   :desc => "The image slug of the droplet"
+                   :desc => "The image id of the droplet"
     method_option  "region",
-                   :type => :numeric,
+                   :type => :string,
                    :aliases => "-r",
                    :desc => "The region slug of the droplet"
     method_option  "keys",
@@ -184,10 +184,10 @@ module Tugboat
 
       Middleware.sequence_create_droplet.call({
         "tugboat_action" => __method__,
-        "create_droplet_ssh_key_ids" => options[:keys],
-        "create_droplet_size_slug" => options[:size],
-        "create_droplet_image_slug" => options[:image],
-        "create_droplet_region_slug" => options[:region],
+        "create_droplet_size" => options[:size],
+        "create_droplet_image" => options[:image],
+        "create_droplet_region" => options[:region],
+        "create_droplet_ssh_keys" => options[:keys].split( ',' ),
         "create_droplet_private_networking" => options[:private_networking],
         "create_droplet_ip6" => options[:ip6],
         "create_droplet_user_data" => options[:user_data],
@@ -474,10 +474,10 @@ module Tugboat
                   :aliases => "-n",
                   :desc => "The exact name of the droplet"
     method_option "size",
-                  :type => :numeric,
+                  :type => :string,
                   :aliases => "-s",
                   :required => true,
-                  :desc => "The size_id to resize the droplet to"
+                  :desc => "The size (slug) to resize the droplet to"
     def resize(name=nil)
       Middleware.sequence_resize_droplet.call({
         "tugboat_action" => __method__,
@@ -577,14 +577,10 @@ module Tugboat
       })
     end
 
-    desc "domain_records", "List the records for a given domain"
-    method_option "id",
-                  :type => :numeric,
-                  :aliases => "-i",
-                  :desc => "The ID of the domain"
-    def domain_records
+    desc "domain_records DOMAIN", "List the records for a given domain"
+    def domain_records( domain )
       Middleware.sequence_domain_records.call({
-        "user_domain_id" => options[:id],
+        "user_domain" => domain,
         "user_quiet" => options[:quiet],
       })
     end
@@ -594,10 +590,10 @@ module Tugboat
                   :type => :numeric,
                   :aliases => "-i",
                   :desc => "The ID of the domain record"
-    method_option "domain_id",
-                  :type => :numeric,
+    method_option "domain",
+                  :type => :string,
                   :aliases => "-d",
-                  :desc => "The ID of the domain"
+                  :desc => "The name of the domain"
     method_option "record_type",
                   :type => :string,
                   :aliases => "-t",
@@ -608,7 +604,7 @@ module Tugboat
                   :desc => "The value for the record"
     def domain_record_edit
       Middleware.sequence_domain_record_edit.call({
-        "user_domain_id" => options[:domain_id],
+        "user_domain" => options[:domain],
         "user_record_id" => options[:id],
         "user_record_type" => options[:record_type],
         "user_record_data" => options[:record_data],
@@ -620,17 +616,17 @@ module Tugboat
                   :type => :numeric,
                   :aliases => "-i",
                   :desc => "The ID of the domain record"
-    method_option "domain_id",
-                  :type => :numeric,
+    method_option "domain",
+                  :type => :string,
                   :aliases => "-d",
-                  :desc => "The ID of the domain"
+                  :desc => "The name of the domain"
     method_option "name",
                   :type => :string,
                   :aliases => "-n",
                   :desc => "The exact name of the droplet"
     def domain( name )
       Middleware.sequence_domain.call({
-        "user_domain_id" => options[:domain_id],
+        "user_domain" => options[:domain],
         "user_record_id" => options[:id],
         "user_droplet_name" => options[:name],
         "user_droplet_fuzzy_name" => name,

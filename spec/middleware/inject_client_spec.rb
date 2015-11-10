@@ -15,7 +15,7 @@ describe Tugboat::Middleware::InjectClient do
     it "loads the client into the environment" do
       described_class.new(app).call(env)
 
-      env["barge"].should be_a Barge::Client
+      env["ocean"].should be_a DropletKit::Client
     end
 
     it "creates a client with values from config file" do

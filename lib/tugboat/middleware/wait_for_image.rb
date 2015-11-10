@@ -10,9 +10,8 @@ module Tugboat
         image = nil
 
         loop do
-          req = ocean.images.list :filter => "my_images"
-          my_images_list = req.images
-          image = my_images_list.find do |image|
+          images = ocean.images.all.reject(&:public)
+          image = images.find do |image|
             if env['user_image_name'] == image.name
               true
             elsif env['user_image_id'] == image.id
@@ -31,6 +30,9 @@ module Tugboat
         say "#{image.name} (id: #{image.id}, distro: #{image.distribution})"
 
         @app.call(env)
+      rescue DropletKit::Error => e
+        say e.message, :red
+        exit 1
       end
     end
   end
